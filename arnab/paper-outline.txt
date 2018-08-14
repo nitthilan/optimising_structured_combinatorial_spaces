@@ -1,0 +1,70 @@
+A. Title
+
+Spare TSV Allocation to Enhance the Lifetime of High-Performance 3D NoCs: A Structured Bayesian Optimization Approach
+
+B. Outline of the paper
+
+1) Introduction
+
+2) Related Work
+
+3) TSV Reliability
+
+- We need to summarize both electromigration and cross-talk capacitance from Sourav's DATE paper succinctly.
+
+4) Problem Setup and Challenges
+
+5) Structured Bayesian Optimization Methodology
+
+5.1 General BO Framework
+
+- Gaussian Processes and Kernels
+
+- Mean and Variance computation
+
+- Acquisition Function: Role and concrete examples (Expected Improvement and Upper Confidence Bounds)
+
+All the existing work on BO is in continuous spaces. However, we are dealing with combinatorial structured spaces.
+
+5.2 Structured Bayesian Optimization Algorithm
+
+- Kernels over structured objects 
+
+- STAGE Algorithm for acquisition function optimization
+
+5.3 Instantiation for Spare TSV Allocation
+
+- Graph Kernels and Weisfelleher Lehman kernel
+
+- Domain knowledge from cross-talk capacitance analysis
+
+6) Experiments and Results
+
+6.1 Experimental Setup
+
+- Benchmarks
+
+- 3D NoC Architecture
+
+- Baselines: Greedy algorithm from Krish's paper and Exhaustive search
+
+- Evaluation Metrics: Accuracy (Lifetime), Number of simulations, and Raw computation time.
+
+6.2 Results for Spare VL Allocation: Exhaustive Search vs. SBO
+
+- Compare exhaustive search and SBO for small spare VL budget. This is to make the point that we can reach optimal solutions with a small number of simulations.
+
+- Accuracy, number of simulations, and raw computation time.
+
+6.3 Results for Spare TSV Allocation
+
+- Comparison of Accuracy: Greedy vs. SBO
+
+- Comparison of number of simulations: Greedy vs. SBO vs. Exhaustive search
+
+- Comparison of raw computation time: Greedy vs. SBO vs. Exhaustive search
+
+- Solutions from Greedy vs. SBO: Qualitative Analysis
+
+7) Summary and Future Work
+
