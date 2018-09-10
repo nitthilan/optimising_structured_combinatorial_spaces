@@ -13,6 +13,8 @@ from kernel import randomised_kernel as rk
 from kernel import fast_cluster_kernel as fck
 from app.syn_func import simulator as asfsim
 from app.bocs import simulator as absim
+from app.bocs import sim_ising
+from app.bocs import sim_contamination
 
 
 
@@ -51,6 +53,10 @@ def run_single_benchmark(config, benchmark_base,
 		sim = std.Simulator(benchmark_base, benchmark)
 	elif(sim_type == "bocs"):
 		sim = absim.BPQ_Sim(num_features, bocs_lamda, bocs_alpha)
+	elif(sim_type == "ising"):
+		sim = sim_ising.Ising_Model()
+	elif(sim_type == "contamination"):
+		sim = sim_contamination.Contamination_Model()
 	else:
 		sim = asfsim.Simulator(sim_type, is_discrete, num_levels, num_bits_per_dim)
 
