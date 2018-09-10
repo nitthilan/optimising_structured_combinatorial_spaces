@@ -5,67 +5,63 @@ Authors: Ricardo Baptista & Matthias Poloczek
 Original Matlab code at https://github.com/baptistar/BOCS/tree/master/test_problems/ContStudy
 '''
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import feature_generator as fg
 
 class Contamination_Model(object):
 	def __init__(self):
 		# input parameters
-		self.n_samples = 20 # no of Monte Carlo samples
-		self.num_features = 20 # length of food chain
+		self.n_samples = 30 # no of Monte Carlo samples
+		self.num_features = 5 # length of food chain
 		self.lam = 1e-4 # regularization constant
 	def get_config(self):
 		return (self.num_features, self.n_samples, self.lam)
 	
-	def contamination(self, x):
-	    n = x.shape[0]
-	    nGen = self.n_samples   # no of samples to generate
-	    # contamination variable
-	    Z = np.zeros((n, nGen))
-	    epsilon = 0.05 * np.ones(n)
-	    u = 0.1*np.ones(n)
-	    cost = np.ones(n)
+	def run(self, x):
+	    '''
+	        x = prevention {0, 1} vector
+	        n_samples = no of Monte Carlo samples to generate (T in the paper)
+	        lambda_reg = regularization parameter
+	    '''
+	    n = x.shape[0]              # no of stages
+	    nGen = self.n_samples            # no of samples to generate
+	    Z = np.zeros((n, nGen))     # contamination variable
+	    epsilon = 0.05 * np.ones(n) # error probability
+	    u = 0.1*np.ones(n)          # upper threshold for contamination
+	    cost = np.ones(n)           # cost for prevention at stage i
 	    # Beta parameters
 	    initialAlpha=1
 	    initialBeta=30
 	    contamAlpha=1
 	    contamBeta=17/3
 	    restoreAlpha=1
-	    restoreBeta=3/7
+	    restoreBeta=7/3
 	    
 	    # generate initial contamination fraction for each sample
 	    initialZ = np.random.beta(initialAlpha, initialBeta, nGen)
 	    # generate rates of contamination for each stage and sample
 	    lambdad = np.random.beta(contamAlpha, contamBeta, (n ,nGen))
-	    # generate rates of contamination for each stage and sample
+	    # generate rates of restoration for each stage and sample
 	    gamma = np.random.beta(restoreAlpha, restoreBeta, (n, nGen))
 	    
-	    
 	    # calculate rates of contamination 
-	    Z[1, :] = lambdad[1, :]*(1-x[1])*(1-initialZ) + (1-gamma[1, :])*(1-x[1])*initialZ
-	    for i in range(2, n):
-                Z[i, :] = lambdad[i, :]*(1-x[i-1])*(1-Z[i-1, :]) + (1-gamma[i, :])*(1-x[i-1])*Z[i-1, :]
-	    print(Z)
+	    Z[0, :] = lambdad[0, :]*(1-x[0])*(1-initialZ) + (1-gamma[0, :]*x[0])*initialZ
+	    for i in range(1, n):
+	        Z[i, :] = lambdad[i, :]*(1-x[i])*(1-Z[i-1, :]) + (1-gamma[i, :]*x[i])*Z[i-1, :]
+	    #print(Z)
 
-	    limit = 1-epsilon
-	    # cost of contamination
-	    fn = np.sum(np.dot(cost, x))
-	    # checking probability that Xi is <=pi is less than 1-eps
 	    con = np.zeros((n, nGen))
 	    for j in range(nGen):
-                con[:, j] = Z[:, j] <= u
-	    print(con)
+	        con[:, j] = Z[:, j] >= u
+	    #print(con)
 	    
 	    con = con.T
-	    constraint = np.zeros(n)
+	    loss_function = 0
 	    for i in range(n):
-                constraint[i] = (np.sum(con[:, i])/nGen)-limit[i]     
-	    return (fn, constraint)
-
-	def run(self, x):
-	    gamma = 1
-	    (cost, constraint) = self.contamination(x)
-	    return -1 * (cost - np.sum(gamma*constraint) + self.lam*np.sum(x))
+	        loss_function += (cost[i]*x[i]+(np.sum(con[:, i])/nGen)) 
+	    loss_function += self.lam*np.sum(x)
+	    #print(loss_function)
+	    return loss_function
 
 	def run_list(self, X):
 		n = X.shape
