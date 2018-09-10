@@ -142,7 +142,7 @@ class BayesianOptimization(object):
         elif(sim_type == "actual_tsv" or sim_type == "dummy_tsv"):
             self.fg = tsvfg.FeatureGenerator(self.max_num_spare_tsv,
                 self.max_num_levels)
-        elif(sim_type == "bocs"):
+        elif(sim_type == "bocs" or sim_type == "ising" or sim_type == "contamination"):
             self.fg = bocsfg.FeatureGenerator(self.sim)
         # elif(sim_type != "actual_tsv" and sim_type != "dummy_tsv"):
         else:
