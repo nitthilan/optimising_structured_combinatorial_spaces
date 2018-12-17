@@ -1,6 +1,6 @@
 import bayesian_optimization as bo
-from app.noc import simulator_interface as si
-from app.tsv import simulator_tsv_decay as std
+#from app.noc import simulator_interface as si
+#from app.tsv import simulator_tsv_decay as std
 
 from multiprocessing import Pool
 import os
@@ -18,7 +18,6 @@ from app.bocs import sim_contamination
 
 
 
-
 def run_single_benchmark(config, benchmark_base, 
 	output_base_name, benchmark):
 	
@@ -33,8 +32,15 @@ def run_single_benchmark(config, benchmark_base,
 		max_num_iterations = int(config["EXTRA_ARG_3"])
 	elif(sim_type == "bocs"):
 		num_features = int(config["EXTRA_ARG_1"]) # num features
-		bocs_lamda = int(config["EXTRA_ARG_2"])
+		bocs_lamda = float(config["EXTRA_ARG_2"])
 		bocs_alpha = float(config["EXTRA_ARG_3"])
+	elif(sim_type == "ising"):
+		num_features = int(config["EXTRA_ARG_1"]) # num features
+		n_vars = int(config["EXTRA_ARG_2"])
+		ising_lamda = float(config["EXTRA_ARG_3"])		
+	elif(sim_type == "contamination"):
+		num_features = int(config["EXTRA_ARG_1"]) # num features
+		cont_lamda = float(config["EXTRA_ARG_2"])		
 	else:
 		is_discrete = int(config["EXTRA_ARG_1"]) # 0-continous, 1-discrete,
 		num_levels = int(config["EXTRA_ARG_2"])
@@ -54,9 +60,9 @@ def run_single_benchmark(config, benchmark_base,
 	elif(sim_type == "bocs"):
 		sim = absim.BPQ_Sim(num_features, bocs_lamda, bocs_alpha)
 	elif(sim_type == "ising"):
-		sim = sim_ising.Ising_Model()
+		sim = sim_ising.Ising_Model(num_features, n_vars, ising_lamda)
 	elif(sim_type == "contamination"):
-		sim = sim_contamination.Contamination_Model()
+		sim = sim_contamination.Contamination_Model(num_features, cont_lamda)
 	else:
 		sim = asfsim.Simulator(sim_type, is_discrete, num_levels, num_bits_per_dim)
 
@@ -68,7 +74,6 @@ def run_single_benchmark(config, benchmark_base,
 	# Initialise the BO with the simulator run function
 	# kernel is None it is RBF kernel with 1.0 * RBF(1.0)
 	bayes_opt = bo.BayesianOptimization(sim)
-
 	if (bo_model == "GP_RBF"):
 		# print("KErnal used has no impact")
 		kernel = Matern(nu=0.5)
@@ -99,9 +104,9 @@ def run_single_benchmark(config, benchmark_base,
 
 	# when acq is ei, parameter xi is 0.0
 	bayes_opt.find_average(n_iter=n_iter,
-		init_points=2,
+		init_points=10,
 		opt_algo=opt_algo,
-		dump_max_every_n = 10,
+		dump_max_every_n = 5,
 		output_file_name = output_file,
 		sim_type = sim_type)
 	bayes_opt.points_to_csv(output_file)
@@ -116,13 +121,13 @@ def keyboard_interrupt_run_single(config, benchmark_base,
 			output_base_name, benchmark)
 	except KeyboardInterrupt:
 		print("exited keyboard_interupt_run_single")
-        os.exit(2)
+		os.exit(2)
 
 def run_all_benchmark(config):
 
 	print("Configuration:")
 	print("==============")
-	for key, value in config.iteritems():
+	for key, value in config.items():
 		print(key,":",value)
 	print("==============================")
 	sim_base_folder = config["SIM_BASE_FOLDER"]
@@ -161,7 +166,7 @@ def keyboard_interrupt_run_act_sim(sim, max_val_output_file, act_sim_output_file
 		return sim.run_sim_for_max(max_val_output_file, act_sim_output_file)
 	except KeyboardInterrupt:
 		print("exited keyboard_interrupt_run_act_sim")
-        os.exit(2)
+		os.exit(2)
 
 def run_all_simulator_for_max(all_sim_base_folder, max_val_folder, sim_list, num_process):
 	pool = Pool(processes=num_process)
@@ -190,6 +195,6 @@ def get_sim_list(sim_base_folder):
 	for directory in os.listdir(sim_base_folder):
 		if(directory != ".DS_Store" and directory != "contains.txt"):
 			dir_list.append(directory)
-	print  dir_list
+	print(dir_list)
 	return dir_list
 
